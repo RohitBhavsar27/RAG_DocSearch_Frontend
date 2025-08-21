@@ -1,0 +1,12 @@
+:host { display: block; }
+
+/* Indeterminate bar animation for server processing */
+@keyframes indeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(-10%); }
+  100% { transform: translateX(100%); }
+}
+.progress-indeterminate {
+  width: 40%;
+  animation: indeterminate 1.2s infinite ease-in-out;
+}

@@ -1,0 +1,21 @@
+/* Typing indicator (three dots) */
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 4px;
+  border-radius: 9999px;
+  background-color: #475569; /* slate-600 */
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
+/* Optional nicer scrollbars (WebKit) */
+:host ::-webkit-scrollbar { width: 10px; }
+:host ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
