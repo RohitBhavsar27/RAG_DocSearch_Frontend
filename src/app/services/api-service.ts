@@ -1,21 +1,16 @@
-// src/app/services/rag-api.service.ts
 import { Injectable, inject } from '@angular/core';
-import {
-    HttpClient,
-    HttpEvent,
-    HttpEventType,
-    HttpRequest,
-} from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface HealthResponse { status: 'ok'; message: string; }
 export interface UploadResponse {
-  filename: string;
-  chunks_created: number;
-  status: string;
-  doc_id: string;          // <- NEW
+    filename: string;
+    chunks_created: number;
+    status: string;
+    doc_id: string;
+    pdf_url: string;
 }
 export type UploadEvent =
     | { kind: 'sent' }
@@ -23,19 +18,26 @@ export type UploadEvent =
     | { kind: 'processing' }
     | { kind: 'done'; data: UploadResponse };
 
-export interface ChatResponse { answer: string; }
+export interface BackendCitation {
+    title: string;
+    page: number;
+    snippet: string;
+    pdf_url: string;     // relative to backend origin
+}
+export interface ChatResponse {
+    answer: string;
+    citations?: BackendCitation[];
+}
 
 @Injectable({ providedIn: 'root' })
 export class RagApiService {
     private http = inject(HttpClient);
-    // If you use an Angular proxy, set this to ''.
-    private base = environment.apiBase ?? '';
+    private base = environment.apiBase ?? ''; // e.g. 'http://127.0.0.1:8000'
 
     health(): Observable<HealthResponse> {
         return this.http.get<HealthResponse>(`${this.base}/api/health`);
     }
 
-    // src/app/services/api-service.ts
     uploadDocument(file: File): Observable<UploadEvent> {
         const form = new FormData();
         form.append('file', file, file.name);
@@ -50,26 +52,20 @@ export class RagApiService {
                 switch (event.type) {
                     case HttpEventType.Sent:
                         return { kind: 'sent' };
-
                     case HttpEventType.UploadProgress: {
-                        // ✅ robust percent even if event.total is undefined
                         const total = (event.total ?? file.size ?? 1);
                         const loaded = (event.loaded ?? 0);
                         const pct = Math.min(100, Math.round((loaded / total) * 100));
                         return { kind: 'upload-progress', progress: pct };
                     }
-
                     case HttpEventType.Response:
                         return { kind: 'done', data: event.body as UploadResponse };
-
                     default:
-                        // optional: you can omit this if you prefer to only drive 'processing' in the component
                         return { kind: 'processing' };
                 }
             })
         );
     }
-
 
     chat(question: string, docId: string) {
         return this.http.post<ChatResponse>(
@@ -78,4 +74,12 @@ export class RagApiService {
             { headers: { 'Content-Type': 'application/json' } }
         );
     }
+
+    // api-service.ts
+    absolutePdfUrl(rel: string) {
+        if (!rel) return '';
+        if (rel.startsWith('http')) return rel;
+        return `${this.base}${rel}`; // base = http://127.0.0.1:8000
+    }
+
 }

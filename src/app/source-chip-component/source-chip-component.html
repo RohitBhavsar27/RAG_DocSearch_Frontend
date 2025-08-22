@@ -1,0 +1,9 @@
+<button type="button" class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs
+                 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500" (click)="clicked.emit()">
+    <svg class="w-3.5 h-3.5 text-indigo-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor"
+            stroke-width="1.5" />
+        <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.5" />
+    </svg>
+    <span class="truncate max-w-[10rem]">{{ label }}</span>
+</button>

@@ -8,9 +8,10 @@ import {
     ViewChild,
     DestroyRef,
     inject,
+    PLATFORM_ID,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RagApiService } from '../services/api-service'; // adjust path if needed
+import { BackendCitation, RagApiService } from '../services/api-service'; // adjust path if needed
 import { timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,14 +19,17 @@ import { PromptChipsComponent } from "../prompt-chips-component/prompt-chips-com
 import { MarkdownMessageComponent } from '../markdown-message-component/markdown-message-component';
 import { HealthIndicatorComponent } from '../health-indicator-component/health-indicator-component';
 import { ExportDialogComponent } from '../export-dialog-component/export-dialog-component';
+import { CitationsDrawerComponent, type Citation } from '../citations-drawer-component/citations-drawer-component';
+import { SourceChipComponent } from '../source-chip-component/source-chip-component';
+import { isPlatformBrowser } from '@angular/common';
 
 type Role = 'user' | 'ai';
-interface ChatMessage { role: Role; content: string; }
+interface ChatMessage { role: Role; content: string; citations?: Citation[]; }
 
 @Component({
     selector: 'app-chat-component',
     standalone: true,
-    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent, HealthIndicatorComponent, ExportDialogComponent,],
+    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent, HealthIndicatorComponent, ExportDialogComponent, CitationsDrawerComponent, SourceChipComponent,],
     templateUrl: './chat-component.html',
     styleUrls: ['./chat-component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,6 +46,8 @@ export class ChatComponent implements AfterViewInit {
     private api = inject(RagApiService);
     private destroyRef = inject(DestroyRef);
     private cdr = inject(ChangeDetectorRef);
+    private platformId = inject(PLATFORM_ID);
+    isBrowser = isPlatformBrowser(this.platformId);
 
     messages: ChatMessage[] = [
         { role: 'ai', content: 'Hi! Upload a PDF on the left, then ask me anything about it.' },
@@ -62,6 +68,9 @@ export class ChatComponent implements AfterViewInit {
     toastMsg = '';
     toastVisible = false;
     private toastTimer?: any;
+    drawerOpen = false;
+    drawerCitations: Citation[] = [];
+    drawerActive = 0;
 
     get isSendDisabled(): boolean {
         return this.isTyping || !this.docId || this.question.trim().length === 0;
@@ -90,25 +99,23 @@ export class ChatComponent implements AfterViewInit {
         this.isTyping = true;
         this.cdr.markForCheck();
 
-        this.api.chat(content, this.docId).pipe(
-            timeout(30000),
-            takeUntilDestroyed(this.destroyRef),
-            catchError((err) => {
-                const detail = err?.error?.detail;
-                if (err?.name === 'TimeoutError') return of({ answer: 'The server took too long to respond. Please try again.' });
-                if (err?.status === 404) return of({ answer: 'No document index found. Please upload a PDF first.' });
-                let msg = 'Sorry—something went wrong while contacting the server.';
-                if (typeof detail === 'string') msg = detail;
-                if (Array.isArray(detail)) msg = detail[0]?.msg || msg;
-                return of({ answer: msg });
-            })
-        ).subscribe({
+        this.api.chat(content, this.docId!).subscribe({
             next: (res) => {
-                this.isTyping = false;
                 const answer = res?.answer ?? '(No answer returned)';
-                this.messages = [...this.messages, { role: 'ai', content: answer }];
+
+                // Map backend citations -> UI citations (and make PDF URL absolute)
+                const mapped: Citation[] = (res?.citations ?? []).map((c: BackendCitation) => ({
+                    id: crypto.randomUUID(),
+                    title: c.title,
+                    page: c.page,
+                    snippet: c.snippet,
+                    pdfUrl: this.api.absolutePdfUrl(c.pdf_url),
+                }));
+
+                this.messages = [...this.messages, { role: 'ai', content: answer, citations: mapped }];
+                this.isTyping = false;
                 this.cdr.markForCheck();
-                this.scrollToBottom();
+                if (this.isBrowser) this.scrollToBottom();
             },
             error: () => {
                 this.isTyping = false;
@@ -118,7 +125,15 @@ export class ChatComponent implements AfterViewInit {
             }
         });
     }
-
+    openCitationsFor(messageIndex: number, citationIndex: number) {
+        const msg = this.messages[messageIndex];
+        if (!msg?.citations?.length) return;
+        this.drawerCitations = msg.citations;
+        this.drawerActive = citationIndex;
+        this.drawerOpen = true;
+        this.cdr.markForCheck();
+    }
+    
     // --- Message actions ---
     copyMessage(content: string): void {
         navigator.clipboard?.writeText(content)

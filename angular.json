@@ -19,6 +19,16 @@
                             {
                                 "glob": "**/*",
                                 "input": "public"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "src/assets",
+                                "output": "assets/"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "node_modules/ngx-extended-pdf-viewer/assets",
+                                "output": "assets/"
                             }
                         ],
                         "styles": [
@@ -45,8 +55,8 @@
                             "optimization": false,
                             "extractLicenses": false,
                             "sourceMap": true,
-                            "ssr": false, 
-                            "prerender": false 
+                            "ssr": false,
+                            "prerender": false
                         }
                     },
                     "defaultConfiguration": "production"
@@ -74,6 +84,16 @@
                             {
                                 "glob": "**/*",
                                 "input": "public"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "src/assets",
+                                "output": "assets/"
+                            },
+                            {
+                                "glob": "**/*",
+                                "input": "node_modules/ngx-extended-pdf-viewer/assets",
+                                "output": "assets/"
                             }
                         ],
                         "styles": [

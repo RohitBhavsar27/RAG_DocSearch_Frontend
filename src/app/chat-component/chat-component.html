@@ -11,7 +11,6 @@
                 Chatting with: <span class="font-semibold">{{ documentName }}</span>
             </h3>
 
-            <!-- chat-component.html (inside <header> .ml-auto container) -->
             <div class="ml-auto flex items-center gap-2">
                 <app-health-indicator-component></app-health-indicator-component>
                 <app-export-dialog-component [messages]="messages"
@@ -20,10 +19,9 @@
         </div>
     </header>
 
-
     <!-- Messages -->
     <div #scroller class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        @for (m of messages; track $index) {
+        @for (m of messages; track $index; let i = $index) {
         <div class="flex" [class.justify-end]="m.role === 'user'" [class.justify-start]="m.role === 'ai'">
             <div class="flex items-start gap-3 max-w-[85%] group">
                 @if (m.role === 'ai') {
@@ -45,12 +43,13 @@
                     } @else {
                     {{ m.content }}
                     }
-                    <!-- Actions row (mobile: always visible; desktop: on hover) -->
+
+                    <!-- Actions -->
                     <div class="mt-1 flex gap-1 md:absolute md:-top-3" [class.md:right-0]="m.role === 'user'"
                         [class.md:left-0]="m.role === 'ai'">
                         <button type="button"
                             class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 text-slate-600
-                       text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
+                             text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
                             (click)="copyMessage(m.content)" title="Copy message" aria-label="Copy message">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor"
@@ -63,7 +62,7 @@
 
                         <button type="button"
                             class="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/90 text-rose-600
-                       text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
+                             text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
                             (click)="deleteMessage($index)" title="Delete message" aria-label="Delete message">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path
@@ -84,6 +83,17 @@
                 }
             </div>
         </div>
+
+        <!-- ✅ Citations chips under AI messages -->
+        @if (m.role === 'ai' && m.citations?.length) {
+        <div class="pl-9 -mt-2 flex flex-wrap gap-2">
+            @for (c of m.citations; track c.id; let j = $index) {
+            <app-source-chip-component [label]="'p. ' + c.page + ' • ' + (c.title || 'Source')"
+                (clicked)="openCitationsFor(i, j)">
+            </app-source-chip-component>
+            }
+        </div>
+        }
         }
 
         @if (isTyping) {
@@ -115,13 +125,13 @@
         <div class="relative">
             <input #questionInput [(ngModel)]="question" name="question" type="text" [disabled]="isTyping"
                 [attr.aria-disabled]="isTyping" class="w-full rounded-full border border-slate-300 px-4 py-3 pr-12 text-sm transition
-               placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
-               disabled:opacity-60 disabled:cursor-not-allowed" placeholder="Ask a question about the document..."
+                    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
+                    disabled:opacity-60 disabled:cursor-not-allowed" placeholder="Ask a question about the document..."
                 autocomplete="off" />
             <button type="submit" [disabled]="isSendDisabled" [attr.aria-disabled]="isSendDisabled" class="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center
-               w-9 h-9 rounded-full bg-indigo-600 text-white transition
-               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500
-               disabled:opacity-60 disabled:cursor-not-allowed" aria-label="Send" title="Send">
+                     w-9 h-9 rounded-full bg-indigo-600 text-white transition
+                     hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500
+                     disabled:opacity-60 disabled:cursor-not-allowed" aria-label="Send" title="Send">
                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M4 12l15-8-4 16-3-6-8-2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
                     </path>
@@ -137,4 +147,9 @@
         {{ toastMsg }}
     </div>
     }
+
+    <!-- ✅ Slide-over drawer -->
+    <app-citations-drawer-component [open]="drawerOpen" [citations]="drawerCitations" [activeIndex]="drawerActive"
+        (close)="drawerOpen = false" (changeActive)="drawerActive = $event">
+    </app-citations-drawer-component>
 </section>
