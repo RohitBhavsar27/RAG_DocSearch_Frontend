@@ -16,6 +16,7 @@ import { of } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PromptChipsComponent } from "../prompt-chips-component/prompt-chips-component";
 import { MarkdownMessageComponent } from '../markdown-message-component/markdown-message-component';
+import { HealthIndicatorComponent } from '../health-indicator-component/health-indicator-component';
 
 type Role = 'user' | 'ai';
 interface ChatMessage { role: Role; content: string; }
@@ -23,7 +24,7 @@ interface ChatMessage { role: Role; content: string; }
 @Component({
     selector: 'app-chat-component',
     standalone: true,
-    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent,],
+    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent, HealthIndicatorComponent,],
     templateUrl: './chat-component.html',
     styleUrls: ['./chat-component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,

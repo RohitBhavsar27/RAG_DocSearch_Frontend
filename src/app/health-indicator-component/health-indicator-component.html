@@ -1,0 +1,18 @@
+<div class="inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs"
+    [class.border-green-200]="status === 'online'" [class.bg-green-50]="status === 'online'"
+    [class.text-green-700]="status === 'online'" [class.border-amber-200]="status === 'degraded'"
+    [class.bg-amber-50]="status === 'degraded'" [class.text-amber-700]="status === 'degraded'"
+    [class.border-rose-200]="status === 'offline'" [class.bg-rose-50]="status === 'offline'"
+    [class.text-rose-700]="status === 'offline'" [attr.title]="tooltip" aria-live="polite">
+    <!-- dot -->
+    <span class="inline-block h-2 w-2 rounded-full" [class.bg-green-500]="status === 'online'"
+        [class.bg-amber-500]="status === 'degraded'" [class.bg-rose-500]="status === 'offline'"></span>
+
+    <span class="font-medium select-none">
+        @if (status === 'online') { Online } @else if (status === 'degraded') { Degraded } @else { Offline }
+    </span>
+
+    @if (ms !== null && status !== 'offline') {
+    <span class="opacity-75">• {{ ms }} ms</span>
+    }
+</div>
