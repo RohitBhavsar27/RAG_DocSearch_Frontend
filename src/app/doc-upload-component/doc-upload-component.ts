@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, DestroyRef, inject, ChangeDetectorRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RagApiService, UploadEvent } from '../services/api-service';
 import { CommonModule } from '@angular/common';
@@ -16,6 +16,7 @@ import { RecentDocsComponent } from '../recent-docs-component/recent-docs-compon
 export class DocUploadComponent {
     private api = inject(RagApiService);
     private recent = inject(RecentDocsService);
+    private cdr = inject(ChangeDetectorRef); // ✅
 
     /** Bubble the active doc name up to AppComponent */
     @Output() documentChange = new EventEmitter<{ name: string; docId: string }>();
@@ -59,25 +60,46 @@ export class DocUploadComponent {
         this.isUploading = true;
         this.isProcessing = false;
         this.progress = 0;
+        this.cdr.markForCheck(); // ✅
 
         this.api.uploadDocument(this.selectedFile).subscribe({
-            next: (ev) => {
-                if (ev.kind === 'done') {
-                    const docId = ev.data.doc_id;
-                    this.recent.add({
-                        name: this.selectedFile!.name,
-                        size: this.selectedFile!.size,
-                        uploadedAt: new Date().toISOString(),
-                        chunks: ev.data?.chunks_created,
-                        docId,
-                    });
-                    this.documentChange.emit({ name: this.selectedFile!.name, docId });
+            next: (ev: UploadEvent) => {
+                switch (ev.kind) {
+                    case 'upload-progress':
+                        this.progress = ev.progress ?? 0;
+                        // show “Processing…” when we reach 100 while the server indexes
+                        if (this.progress >= 100) this.isProcessing = true;
+                        break;
+
+                    case 'processing':
+                        this.isProcessing = true;
+                        break;
+
+                    case 'done': {
+                        // ✅ clear banner
+                        this.isUploading = false;
+                        this.isProcessing = false;
+                        this.progress = 100;
+
+                        const docId = ev.data.doc_id;
+                        this.recent.add({
+                            name: this.selectedFile!.name,
+                            size: this.selectedFile!.size,
+                            uploadedAt: new Date().toISOString(),
+                            chunks: ev.data?.chunks_created,
+                            docId,
+                        });
+                        this.documentChange.emit({ name: this.selectedFile!.name, docId });
+                        break;
+                    }
                 }
+                this.cdr.markForCheck(); // ✅ update view with OnPush
             },
             error: () => {
+                // ✅ always clear on error
                 this.isUploading = false;
                 this.isProcessing = false;
-                // (Optional) show error toast
+                this.cdr.markForCheck();
             }
         });
     }
