@@ -17,6 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PromptChipsComponent } from "../prompt-chips-component/prompt-chips-component";
 import { MarkdownMessageComponent } from '../markdown-message-component/markdown-message-component';
 import { HealthIndicatorComponent } from '../health-indicator-component/health-indicator-component';
+import { ExportDialogComponent } from '../export-dialog-component/export-dialog-component';
 
 type Role = 'user' | 'ai';
 interface ChatMessage { role: Role; content: string; }
@@ -24,16 +25,20 @@ interface ChatMessage { role: Role; content: string; }
 @Component({
     selector: 'app-chat-component',
     standalone: true,
-    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent, HealthIndicatorComponent,],
+    imports: [FormsModule, PromptChipsComponent, MarkdownMessageComponent, HealthIndicatorComponent, ExportDialogComponent,],
     templateUrl: './chat-component.html',
     styleUrls: ['./chat-component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComponent implements AfterViewInit {
     @Input() documentName = 'No document selected';
-    @ViewChild('scroller') scroller!: ElementRef<HTMLDivElement>;
+    @Input() docId: string | null = null;       // <- NEW    @ViewChild('scroller') scroller!: ElementRef<HTMLDivElement>;
     @ViewChild('questionInput') questionInput!: ElementRef<HTMLInputElement>;
 
+    // ✅ This is the missing property
+    @ViewChild('scroller', { static: false })
+    scroller?: ElementRef<HTMLDivElement>;
+    
     private api = inject(RagApiService);
     private destroyRef = inject(DestroyRef);
     private cdr = inject(ChangeDetectorRef);
@@ -59,7 +64,7 @@ export class ChatComponent implements AfterViewInit {
     private toastTimer?: any;
 
     get isSendDisabled(): boolean {
-        return this.isTyping || this.question.trim().length === 0;
+        return this.isTyping || !this.docId || this.question.trim().length === 0;
     }
 
     ngAfterViewInit(): void {
@@ -76,7 +81,7 @@ export class ChatComponent implements AfterViewInit {
 
     onSend(): void {
         const content = this.question.trim();
-        if (!content || this.isTyping) return;
+        if (!content || this.isTyping || !this.docId) return;
 
         this.messages = [...this.messages, { role: 'user', content }];
         this.question = '';
@@ -85,7 +90,7 @@ export class ChatComponent implements AfterViewInit {
         this.isTyping = true;
         this.cdr.markForCheck();
 
-        this.api.chat(content).pipe(
+        this.api.chat(content, this.docId).pipe(
             timeout(30000),
             takeUntilDestroyed(this.destroyRef),
             catchError((err) => {

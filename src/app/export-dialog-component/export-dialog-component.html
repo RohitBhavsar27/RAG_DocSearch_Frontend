@@ -1,0 +1,21 @@
+<div class="relative">
+    <button type="button" class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs
+                 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500" (click)="toggleMenu()"
+        aria-haspopup="menu" [attr.aria-expanded]="menuOpen">
+        Export
+        <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+    </button>
+
+    @if (menuOpen) {
+    <div class="absolute right-0 mt-2 w-40 rounded-lg border border-slate-200 bg-white shadow-md z-10" role="menu">
+        <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50" (click)="exportMarkdown()">
+            Export as Markdown
+        </button>
+        <button type="button" class="w-full text-left px-3 py-2 text-sm hover:bg-slate-50" (click)="exportText()">
+            Export as .txt
+        </button>
+    </div>
+    }
+</div>

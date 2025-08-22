@@ -1,0 +1,44 @@
+<!-- src/app/components/recent-docs/recent-docs.component.html -->
+<div class="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+    <div class="mb-2 flex items-center justify-between">
+        <h4 class="text-sm font-medium text-slate-800">Recent</h4>
+        <button type="button" class="text-xs text-slate-500 hover:text-slate-700" (click)="onClear()">
+            Clear all
+        </button>
+    </div>
+
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+        @if ((docs$ | async)?.length === 0) {
+        <p class="text-xs text-slate-500">No recent documents yet.</p>
+        } @else {
+        @for (d of (docs$ | async); track $index; let i = $index) {
+        <div
+            class="group flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50">
+            <button type="button" class="flex items-center gap-3 text-left w-full" (click)="onOpen(d)"
+                title="Use this document again">
+                <div class="flex h-8 w-8 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor"
+                            stroke-width="1.5" />
+                        <path d="M14 3v5h5" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <div class="truncate text-sm text-slate-800">{{ d.name }}</div>
+                    <div class="text-[11px] text-slate-500">
+                        {{ d.size / 1024 / 1024 | number:'1.1-1' }} MB
+                        • {{ d.uploadedAt | date:'mediumDate' }}
+                        @if (d.chunks) { • {{ d.chunks }} chunks }
+                    </div>
+                </div>
+            </button>
+            <button type="button"
+                class="ml-2 shrink-0 rounded-md border border-slate-200 px-2 py-1 text-[11px] text-slate-600 hover:bg-white"
+                (click)="onRemove(i)" title="Remove from recent">
+                Remove
+            </button>
+        </div>
+        }
+        }
+    </div>
+</div>

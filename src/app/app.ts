@@ -2,9 +2,11 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { ChatComponent } from './chat-component/chat-component';
 import { DocUploadComponent } from './doc-upload-component/doc-upload-component';
 
+type ActiveDoc = { name: string; docId: string } | null;
+
 @Component({
     selector: 'app-root',
-    imports: [ChatComponent, DocUploadComponent],
+    imports: [ChatComponent, DocUploadComponent,],
     templateUrl: './app.html',
     styleUrl: './app.css',
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -12,16 +14,17 @@ import { DocUploadComponent } from './doc-upload-component/doc-upload-component'
 export class App {
     protected readonly title = signal('RAG_DocSearch_Frontend');
 
-    documentName: string | null = null;
+    active: ActiveDoc = null;
 
-    onFileSelected(file: File): void {
-        this.documentName = file?.name ?? null;
+    onDocumentChange(doc: ActiveDoc) {
+        this.active = doc;
     }
 
-    onFileCleared(): void {
-        this.documentName = null;
+    get documentName(): string {
+        return this.active?.name ?? 'No document selected';
     }
 
-    onProcessStarted(_file: File): void { }
-    onProcessCompleted(_file: File): void { }
+    get docId(): string | null {
+        return this.active?.docId ?? null;
+    }
 }

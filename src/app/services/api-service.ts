@@ -11,7 +11,12 @@ import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface HealthResponse { status: 'ok'; message: string; }
-export interface UploadResponse { filename: string; chunks_created: number; status: string; }
+export interface UploadResponse {
+  filename: string;
+  chunks_created: number;
+  status: string;
+  doc_id: string;          // <- NEW
+}
 export type UploadEvent =
     | { kind: 'sent' }
     | { kind: 'upload-progress'; progress: number }
@@ -58,10 +63,10 @@ export class RagApiService {
         );
     }
 
-    chat(question: string): Observable<ChatResponse> {
+    chat(question: string, docId: string) {
         return this.http.post<ChatResponse>(
             `${this.base}/api/chat`,
-            { question },
+            { question, doc_id: docId },
             { headers: { 'Content-Type': 'application/json' } }
         );
     }

@@ -1,17 +1,7 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 font-sans">
-    <div class="mx-auto max-w-7xl p-4 md:p-6">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-            <aside class="md:col-span-4 lg:col-span-4 order-1">
-                <app-doc-upload-component (fileSelected)="onFileSelected($event)" (fileCleared)="onFileCleared()"
-                    (processStarted)="onProcessStarted($event)" (processCompleted)="onProcessCompleted($event)">
-                </app-doc-upload-component>
-            </aside>
-
-            <section class="md:col-span-8 lg:col-span-8 order-2">
-                <app-chat-component class="min-h-[60vh] md:h-[calc(100vh-4.5rem)]"
-                    [documentName]="documentName || 'No document selected'">
-                </app-chat-component>
-            </section>
-        </div>
+<div class="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div class="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-[35%_1fr] gap-4">
+        <app-doc-upload-component (documentChange)="onDocumentChange($event)"></app-doc-upload-component>
+        <app-chat-component [documentName]="documentName" [docId]="docId">
+        </app-chat-component>
     </div>
 </div>
