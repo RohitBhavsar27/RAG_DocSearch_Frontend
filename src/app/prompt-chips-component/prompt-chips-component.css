@@ -1,0 +1,6 @@
+/* Subtle scrollbar for the horizontal chip row (WebKit browsers) */
+:host ::-webkit-scrollbar { height: 8px; }
+:host ::-webkit-scrollbar-thumb {
+  background: #e0e7ff; /* indigo-100 */
+  border-radius: 9999px;
+}

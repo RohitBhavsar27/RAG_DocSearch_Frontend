@@ -15,66 +15,97 @@
 
     <!-- Messages -->
     <div #scroller class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-        @for (msg of messages; track $index) {
-        @if (msg.role === 'ai') {
-        <div class="flex items-start gap-3 max-w-3xl">
-            <div class="flex-none">
-                <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                    <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5" />
-                        <circle cx="9" cy="11" r="1" fill="currentColor" />
-                        <circle cx="15" cy="11" r="1" fill="currentColor" />
-                        <path d="M9 15h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        @for (m of messages; track $index) {
+        <div class="flex" [class.justify-end]="m.role === 'user'" [class.justify-start]="m.role === 'ai'">
+            <div class="flex items-start gap-3 max-w-[85%] group">
+                @if (m.role === 'ai') {
+                <div class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-600">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M7 10a5 5 0 0 1 10 0v4a5 5 0 0 1-10 0v-4Z" stroke="currentColor" stroke-width="1.5" />
+                        <circle cx="10" cy="12" r="1" fill="currentColor" />
+                        <circle cx="14" cy="12" r="1" fill="currentColor" />
                     </svg>
                 </div>
-            </div>
-            <div class="flex-1">
-                <div class="inline-block rounded-2xl px-4 py-3 bg-slate-100 text-slate-800">
-                    <p class="text-sm leading-relaxed whitespace-pre-line">{{ msg.content }}</p>
+                }
+
+                <!-- bubble -->
+                <div class="relative px-3 py-2 rounded-2xl shadow-sm whitespace-pre-wrap break-words"
+                    [class.bg-slate-100]="m.role === 'ai'" [class.text-slate-900]="m.role === 'ai'"
+                    [class.bg-indigo-600]="m.role === 'user'" [class.text-white]="m.role === 'user'">
+                    {{ m.content }}
+
+                    <!-- Actions row (mobile: always visible; desktop: on hover) -->
+                    <div class="mt-1 flex gap-1 md:absolute md:-top-3" [class.md:right-0]="m.role === 'user'"
+                        [class.md:left-0]="m.role === 'ai'">
+                        <button type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/90 text-slate-600
+                       text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
+                            (click)="copyMessage(m.content)" title="Copy message" aria-label="Copy message">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor"
+                                    stroke-width="1.5" />
+                                <rect x="5" y="5" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"
+                                    opacity=".6" />
+                            </svg>
+                            Copy
+                        </button>
+
+                        <button type="button"
+                            class="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-white/90 text-rose-600
+                       text-[11px] px-2 py-0.5 shadow-sm hover:bg-white md:opacity-0 md:group-hover:opacity-100 transition"
+                            (click)="deleteMessage($index)" title="Delete message" aria-label="Delete message">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path
+                                    d="M5 7h14M10 11v6m4-6v6M9 7l1-2h4l1 2m-8 0 1 12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2l1-12"
+                                    stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            Delete
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
-        } @else {
-        <div class="flex items-start gap-3 justify-end">
-            <div class="flex-1"></div>
-            <div class="max-w-3xl">
-                <div class="inline-block rounded-2xl px-4 py-3 bg-indigo-600 text-white">
-                    <p class="text-sm leading-relaxed whitespace-pre-line">{{ msg.content }}</p>
-                </div>
-            </div>
-            <div class="flex-none">
+
+                @if (m.role === 'user') {
                 <div
-                    class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 text-xs font-semibold">
-                    You</div>
+                    class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                    You
+                </div>
+                }
             </div>
         </div>
-        }
         }
 
         @if (isTyping) {
-        <div class="flex items-center gap-2 text-slate-600" aria-live="polite">
-            <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                <svg class="w-4 h-4 text-slate-700" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"></circle>
+        <div class="flex items-center gap-2 text-slate-500">
+            <div class="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-600">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M7 10a5 5 0 0 1 10 0v4a5 5 0 0 1-10 0v-4Z" stroke="currentColor" stroke-width="1.5" />
                 </svg>
             </div>
-            <div class="flex items-center gap-1">
-                <span class="text-sm">AI is typing</span>
-                <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+            <div class="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:120ms]"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400 animate-bounce [animation-delay:240ms]"></span>
+                <span class="ml-2 text-xs">AI is typing…</span>
             </div>
         </div>
         }
     </div>
 
+    <!-- Chips -->
+    <div class="border-t border-slate-200 px-3 md:px-4 py-2 bg-white">
+        <app-prompt-chips-component [prompts]="promptSuggestions" [disabled]="isTyping" (selectPrompt)="onPromptChip($event)">
+        </app-prompt-chips-component>
+    </div>
+
     <!-- Input -->
     <form (submit)="onSend()" class="border-t border-slate-200 p-3 md:p-4 bg-white" aria-label="Chat input">
         <div class="relative">
-            <input [(ngModel)]="question" name="question" type="text" [disabled]="isTyping"
+            <input #questionInput [(ngModel)]="question" name="question" type="text" [disabled]="isTyping"
                 [attr.aria-disabled]="isTyping" class="w-full rounded-full border border-slate-300 px-4 py-3 pr-12 text-sm transition
                placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500
                disabled:opacity-60 disabled:cursor-not-allowed" placeholder="Ask a question about the document..."
                 autocomplete="off" />
-
             <button type="submit" [disabled]="isSendDisabled" [attr.aria-disabled]="isSendDisabled" class="absolute right-1.5 top-1/2 -translate-y-1/2 inline-flex items-center justify-center
                w-9 h-9 rounded-full bg-indigo-600 text-white transition
                hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500
@@ -85,6 +116,13 @@
                 </svg>
             </button>
         </div>
-        <div class="block md:hidden pt-[env(safe-area-inset-bottom)]"></div>
     </form>
+
+    <!-- Tiny toast -->
+    @if (toastVisible) {
+    <div class="pointer-events-none fixed bottom-4 left-1/2 -translate-x-1/2 z-50
+                rounded-full bg-slate-900/90 text-white text-xs px-3 py-1.5 shadow">
+        {{ toastMsg }}
+    </div>
+    }
 </section>
