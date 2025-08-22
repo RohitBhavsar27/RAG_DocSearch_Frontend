@@ -1,0 +1,21 @@
+:host .prose pre {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #0f172a0d; /* slate-900/5 */
+  overflow: auto;
+}
+:host .prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85em;
+}
+:host .prose table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+}
+:host .prose blockquote {
+  border-left-color: #c7d2fe; /* indigo-200 */
+}
